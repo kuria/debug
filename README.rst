@@ -67,7 +67,7 @@ Output:
   A. it has no properties
   B. the properties cannot be displayed due to the nesting limit
 
-- if an object implements the ``\DateTimeInterface``, it's value
+- if an object implements the ``\DateTimeInterface``, its value
   will be formatted as ``DATE_RFC1123`` and displayed
 
 
