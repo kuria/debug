@@ -1,7 +1,7 @@
 {
     "name": "kuria/debug",
-    "description": "Collection of utilities useful for debugging purposes.",
-    "keywords": ["debug", "dump", "exceptions"],
+    "description": "Collection of useful debugging utilities.",
+    "keywords": ["debug", "dump", "var_dump", "hex", "exception", "error"],
     "license": "MIT",
     "require": {
         "php": ">=5.3.0"
