@@ -12,6 +12,10 @@ namespace Kuria\Debug;
  */
 class Dumper
 {
+    const DEFAULT_MAX_LEVEL = 2;
+    const DEFAULT_MAX_STRING_LENGTH = 64;
+    const DEFAULT_HEX_WIDTH = 16;
+
     /**
      * This is a static class
      */
@@ -29,7 +33,7 @@ class Dumper
      * @param int         $currentLevel current nesting level
      * @return string
      */
-    public static function dump($value, $maxLevel = 2, $maxStringLen = 64, $encoding = null, $currentLevel = 1)
+    public static function dump($value, $maxLevel = self::DEFAULT_MAX_LEVEL, $maxStringLen = self::DEFAULT_MAX_STRING_LENGTH, $encoding = null, $currentLevel = 1)
     {
         $output = '';
         $type = gettype($value);
@@ -189,7 +193,7 @@ class Dumper
      * @param int    $width
      * @return string
      */
-    public static function dumpStringAsHex($string, $width = 16)
+    public static function dumpStringAsHex($string, $width = self::DEFAULT_HEX_WIDTH)
     {
         $string = (string) $string;
 
