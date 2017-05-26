@@ -1,12 +1,11 @@
 <?php
 
-
 namespace Kuria\Debug;
 
 /**
  * Value dumper
  *
- * Dumps arbitrary PHP values to strings.
+ * Dumps arbitrary PHP values as strings.
  *
  * @author ShiraNai7 <shira.cz>
  */
