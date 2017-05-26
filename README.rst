@@ -1,7 +1,7 @@
 Debug utilities
 ###############
 
-Collection of utilities useful for debugging purposes.
+Collection of useful debugging utilities.
 
 .. contents::
    :depth: 2
