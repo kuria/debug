@@ -59,7 +59,7 @@ class Error
         $chain = array();
         $hashMap = array();
 
-        while (null !== $node && !isset($hashMap[$hash = spl_object_hash($node)])) {
+        while ($node !== null && !isset($hashMap[$hash = spl_object_hash($node)])) {
             $chain[] = $node;
             $hashMap[$hash] = true;
             $node = $node->getPrevious();
@@ -165,11 +165,11 @@ class Error
             $name = static::getErrorNameByCode($exception->getSeverity());
         }
 
-        if (null === $name) {
+        if ($name === null) {
             $name = get_class($exception);
         }
 
-        if (0 !== ($code = $exception->getCode())) {
+        if (($code = $exception->getCode()) !== (0)) {
             $name .= " ({$code})";
         }
 

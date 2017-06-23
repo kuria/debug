@@ -28,10 +28,10 @@ class Output
      */
     public static function cleanBuffers($targetLevel = null, $capture = false, $catchExceptions = false)
     {
-        if (null === $targetLevel) {
+        if ($targetLevel === null) {
             $targetLevel = 0;
 
-            if ('' != ini_get('output_buffer') || '' != ini_get('output_handler')) {
+            if (ini_get('output_buffer') != '' || ini_get('output_handler') != '') {
                 ++$targetLevel;
             }
         }
@@ -55,7 +55,7 @@ class Output
 
                 $bufferLevel = ob_get_level();
 
-                if (null === $e) {
+                if ($e === null) {
                     if ($capture) {
                         $buffer = $result . $buffer;
                     }

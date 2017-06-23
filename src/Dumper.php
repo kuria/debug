@@ -65,7 +65,7 @@ class Dumper
                     // PHP 7+ (anonymous class names contain a NULL byte)
                     $className = get_class($value);
 
-                    $output .= false !== ($nullBytePos = strpos($className, "\0"))
+                    $output .= ($nullBytePos = strpos($className, "\0")) !== (false)
                         ? substr($className, 0, $nullBytePos)
                         : $className;
                 } else {
@@ -164,17 +164,17 @@ class Dumper
      */
     public static function dumpString($string, $maxLength = null, $encoding = null, $quotes = null, $ellipsis = null)
     {
-        $stringLength = null === $encoding
+        $stringLength = $encoding === null
             ? mb_strlen($string)
             : mb_strlen($string, $encoding);
 
-        $tooLong = null !== $maxLength && $stringLength > $maxLength;
+        $tooLong = $maxLength !== null && $stringLength > $maxLength;
 
         return
             $quotes[0]
             . addcslashes(
                 $tooLong
-                    ? (null === $encoding
+                    ? ($encoding === null
                     ? mb_substr($string, 0, $maxLength)
                     : mb_substr($string, 0, $maxLength, $encoding)
                 )
@@ -199,7 +199,7 @@ class Dumper
         static $from = '';
         static $to = '';
 
-        if ('' === $from) {
+        if ($from === '') {
             for ($i = 0; $i <= 0xFF; $i++) {
                 $from .= chr($i);
                 $to .= ($i >= 0x20 && $i <= 0x7E) ? chr($i) : '.';

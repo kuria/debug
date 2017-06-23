@@ -27,7 +27,7 @@ class OutputTest extends \PHPUnit_Framework_TestCase
         echo 'a';
 
         ob_start(function ($buffer, $phase) {
-            if (0 !== ($phase & PHP_OUTPUT_HANDLER_CLEAN)) {
+            if (($phase & PHP_OUTPUT_HANDLER_CLEAN) !== (0)) {
                 throw new \Exception('Test buffer exception');
             }
         });
@@ -51,7 +51,7 @@ class OutputTest extends \PHPUnit_Framework_TestCase
         echo 'lorem';
 
         ob_start(function ($buffer, $phase) use ($testBufferException) {
-            if (0 !== (PHP_OUTPUT_HANDLER_END & $phase)) {
+            if ((PHP_OUTPUT_HANDLER_END & $phase) !== (0)) {
                 throw $testBufferException;
             }
         });
@@ -71,7 +71,7 @@ class OutputTest extends \PHPUnit_Framework_TestCase
 
         Output::cleanBuffers($bufferLevel, false, true);
 
-        if (null === $e) {
+        if ($e === null) {
             $this->fail('The buffer exception was not rethrown');
         }
 
