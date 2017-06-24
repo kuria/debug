@@ -1,10 +1,17 @@
 Changelog
 #########
 
+
+1.0.2
+*****
+
+- ``Dumper`` now displays the ``-INF`` float value correctly
+
+
 1.0.1
 ******
 
-- moved default `Dumper` limits to class constants
+- moved default ``Dumper`` limits to class constants
 - code style fixes
 
 

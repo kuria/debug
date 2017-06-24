@@ -134,7 +134,11 @@ class Dumper
                 $output .= $value;
                 break;
             case 'double':
-                $output .= sprintf('%F', $value);
+                if (-INF === $value) {
+                    $output .= '-INF';
+                } else {
+                    $output .= sprintf('%F', $value);
+                }
                 break;
             case 'boolean':
                 $output .= ($value ? 'true' : 'false');
