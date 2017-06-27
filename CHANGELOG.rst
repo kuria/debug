@@ -6,6 +6,7 @@ Changelog
 *****
 
 - ``Dumper`` now displays the ``-INF`` float value correctly
+- code style fixes
 
 
 1.0.1
