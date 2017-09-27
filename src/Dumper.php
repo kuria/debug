@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\Debug;
 
@@ -6,34 +6,24 @@ namespace Kuria\Debug;
  * Value dumper
  *
  * Dumps arbitrary PHP values as strings.
- *
- * @author ShiraNai7 <shira.cz>
  */
-class Dumper
+abstract class Dumper
 {
     const DEFAULT_MAX_LEVEL = 2;
     const DEFAULT_MAX_STRING_LENGTH = 64;
     const DEFAULT_HEX_WIDTH = 16;
-
-    /**
-     * This is a static class
-     */
-    private function __construct()
-    {
-    }
+    const DATE_TIME_FORMAT = DATE_RFC1123;
 
     /**
      * Dump a value
-     *
-     * @param mixed       $value        the value to dump
-     * @param int         $maxLevel     maximum nesting level
-     * @param int|null    $maxStringLen maximum number of characters to dump (null = no limit)
-     * @param string|null $encoding     string encoding (null = mb_internal_encoding())
-     * @param int         $currentLevel current nesting level
-     * @return string
      */
-    public static function dump($value, $maxLevel = self::DEFAULT_MAX_LEVEL, $maxStringLen = self::DEFAULT_MAX_STRING_LENGTH, $encoding = null, $currentLevel = 1)
-    {
+    static function dump(
+        $value,
+        int $maxLevel = self::DEFAULT_MAX_LEVEL,
+        ?int $maxStringLen = self::DEFAULT_MAX_STRING_LENGTH,
+        ?string $encoding = null,
+        int $currentLevel = 1
+    ): string {
         $output = '';
         $type = gettype($value);
         $indent = str_repeat('    ', $currentLevel);
@@ -43,96 +33,102 @@ class Dumper
                 if ($currentLevel < $maxLevel && $value) {
                     // full
                     $output .= 'array[' . sizeof($value) . "] {\n";
-                    foreach ($value as $key => $item) {
-                        $output .= $indent . (is_string($key) ? static::dumpString($key, $maxStringLen, $encoding, '[]', '...') : "[{$key}]") . ' => ';
-                        $output .= static::dump($item, $maxLevel, $maxStringLen, $encoding, $currentLevel + 1);
+                    foreach ($value as $key => $property) {
+                        $output .= $indent . (is_string($key) ? static::dumpString($key, $maxStringLen, $encoding, ['[', ']'], '...') : "[{$key}]") . ' => ';
+                        $output .= static::dump($property, $maxLevel, $maxStringLen, $encoding, $currentLevel + 1);
                         $output .= "\n";
                     }
                     if ($currentLevel > 1) {
                         $output .= str_repeat('    ', $currentLevel - 1);
                     }
-                    $key = $item = null;
+                    $key = $property = null;
                     $output .= "}";
                 } else {
                     // short
                     $output .= 'array[' . sizeof($value) . "]";
                 }
                 break;
+
             case 'object':
                 $output .= 'object(';
+                $className = get_class($value);
 
-                if (PHP_MAJOR_VERSION >= 7) {
-                    // PHP 7+ (anonymous class names contain a NULL byte)
-                    $className = get_class($value);
-
-                    $output .= ($nullBytePos = strpos($className, "\0")) !== (false)
-                        ? substr($className, 0, $nullBytePos)
-                        : $className;
+                if (strpos($className, "\0") !== false) {
+                    $output .= '<anonymous>';
                 } else {
-                    $output .= get_class($value);
+                    $output .= $className;
                 }
 
                 $output .= ')';
 
                 // output formatted date-time value?
-                if ($value instanceof \DateTime || $value instanceof \DateTimeInterface) {
-                    $output .= " \"{$value->format(DATE_RFC1123)}\"";
+                if ($value instanceof \DateTimeInterface) {
+                    $output .= " \"{$value->format(static::DATE_TIME_FORMAT)}\"";
                     break;
                 }
 
                 // dump properties?
                 if ($currentLevel < $maxLevel) {
                     if (method_exists($value, '__debugInfo')) {
-                        // use __debugInfo (PHP 5.6 feature)
+                        // use __debugInfo
                         $properties = $value->__debugInfo();
-                        $actualProperties = false;
+                        $isReflectionProperties = false;
                     } else {
                         // use actual properties
-                        $properties = static::getObjectProperties($value, true, true);
-                        $actualProperties = true;
+                        $properties = static::getObjectProperties($value, true);
+                        $isReflectionProperties = true;
                     }
 
                     if ($properties) {
                         // full
                         $output .= " {\n";
-                        if ($actualProperties) {
-                            foreach ($properties as $key => $item) {
+                        if ($isReflectionProperties) {
+                            foreach ($properties as $propertyName => $reflectionProperty) {
+                                $reflectionProperty->setAccessible(true);
+
                                 $output .=
                                     $indent
-                                    . implode(' ', \Reflection::getModifierNames($item->getModifiers())) . ' '
-                                    . static::dumpString($key, $maxStringLen, $encoding, '[]', '...')
+                                    . implode(' ', \Reflection::getModifierNames($reflectionProperty->getModifiers())) . ' '
+                                    . static::dumpString($propertyName, $maxStringLen, $encoding, ['[', ']'], '...')
                                     . ' => ';
-                                $output .= static::dump($item->getValue($value), $maxLevel, $maxStringLen, $encoding, $currentLevel + 1);
+                                $output .= static::dump($reflectionProperty->getValue($value), $maxLevel, $maxStringLen, $encoding, $currentLevel + 1);
                                 $output .= "\n";
                             }
+                            $propertyName = $reflectionProperty = null;
                         } else {
-                            foreach ($properties as $key => $item) {
-                                $output .= $indent . (is_string($key) ? static::dumpString($key, $maxStringLen, $encoding, '[]', '...') : "[{$key}]") . ' => ';
-                                $output .= static::dump($item, $maxLevel, $maxStringLen, $encoding, $currentLevel + 1);
+                            foreach ($properties as $propertyName => $propertyValue) {
+                                $output .= $indent . (is_string($propertyName) ? static::dumpString($propertyName, $maxStringLen, $encoding, ['[', ']'], '...') : "[{$propertyName}]") . ' => ';
+                                $output .= static::dump($propertyValue, $maxLevel, $maxStringLen, $encoding, $currentLevel + 1);
                                 $output .= "\n";
                             }
+                            $propertyName = $propertyValue = null;
                         }
-                        $properties = $key = $item = null;
+
+                        $properties = null;
+
                         if ($currentLevel > 1) {
                             $output .= str_repeat('    ', $currentLevel - 1);
                         }
-                        $output .= '}';
 
+                        $output .= '}';
                         break;
                     }
                 }
 
-                // try to use __toString() if available
+                // could not dump properties - use __toString() if available
                 if (method_exists($value, '__toString')) {
-                    $output .= ' ' . static::dumpString((string) $value, $maxStringLen, $encoding, '""', '...');
+                    $output .= ' ' . static::dumpString((string) $value, $maxStringLen, $encoding, ['"', '"'], '...');
                 }
                 break;
+
             case 'string':
-                $output .= static::dumpString($value, $maxStringLen, $encoding, '""', '...');
+                $output .= static::dumpString($value, $maxStringLen, $encoding, ['"', '"'], '...');
                 break;
+
             case 'integer':
                 $output .= $value;
                 break;
+
             case 'double':
                 if (-INF === $value) {
                     $output .= '-INF';
@@ -140,12 +136,15 @@ class Dumper
                     $output .= sprintf('%F', $value);
                 }
                 break;
+
             case 'boolean':
                 $output .= ($value ? 'true' : 'false');
                 break;
+
             case 'resource':
                 $output .= 'resource(' . get_resource_type($value) . '#' . ((int) $value) . ")";
                 break;
+
             default:
                 $output .= $type;
                 break;
@@ -155,19 +154,20 @@ class Dumper
     }
 
     /**
-     * Dump a string and return the result
+     * Dump a string
      *
      * All ASCII < 32 will be escaped in C style.
      *
-     * @param string               $string    the string to dump
-     * @param int|null             $maxLength maximum number of characters to dump (null = no limit)
-     * @param string|null          $encoding  string encoding (null = mb_internal_encoding())
-     * @param string|string[]|null $quotes    quote symbols (2 byte string or a 2-element array)
-     * @param string|null          $ellipsis  ellipsis string (appended at the end if the string had to be shortened)
-     * @return string
+     * - if $quotes is specified, it should be an array with 2 elements
+     * - if $ellipsis is specified, it will be appended at the end if the string had to be shortened
      */
-    public static function dumpString($string, $maxLength = null, $encoding = null, $quotes = null, $ellipsis = null)
-    {
+    static function dumpString(
+        string $string,
+        ?int $maxLength = null,
+        ?string $encoding = null,
+        ?array $quotes = null,
+        ?string $ellipsis = null
+    ): string {
         $stringLength = $encoding === null
             ? mb_strlen($string)
             : mb_strlen($string, $encoding);
@@ -191,12 +191,8 @@ class Dumper
 
     /**
      * Dump a string in HEX format
-     *
-     * @param string $string
-     * @param int    $width
-     * @return string
      */
-    public static function dumpStringAsHex($string, $width = self::DEFAULT_HEX_WIDTH)
+    static function dumpStringAsHex(string $string, int $width = self::DEFAULT_HEX_WIDTH): string
     {
         $string = (string) $string;
 
@@ -231,14 +227,11 @@ class Dumper
     /**
      * Get all properties of the given object
      *
-     * @param object $object
-     * @param bool   $includeStatic
-     * @param bool   $getReflection
-     * @return mixed[]|\ReflectionProperty[]
+     * @return \ReflectionProperty[]
      */
-    public static function getObjectProperties($object, $includeStatic = true, $getReflection = false)
+    static function getObjectProperties($object, bool $includeStatic = true): array
     {
-        $output = array();
+        $properties = [];
 
         try {
             $filter =
@@ -254,8 +247,7 @@ class Dumper
                     continue;
                 }
 
-                $property->setAccessible(true);
-                $output[$property->getName()] = $getReflection ? $property : $property->getValue($object);
+                $properties[$property->getName()] = $property;
             }
 
             foreach (class_parents($object) as $parentClass) {
@@ -264,10 +256,9 @@ class Dumper
                 foreach ($reflection->getProperties($parentFilter) as $property) {
                     if (
                         ($includeStatic || !$property->isStatic())
-                        && !array_key_exists($name = $property->getName(), $output)
+                        && !array_key_exists($name = $property->getName(), $properties)
                     ) {
-                        $property->setAccessible(true);
-                        $output[$name] = $getReflection ? $property : $property->getValue($object);
+                        $properties[$name] = $property;
                     }
                 }
             }
@@ -275,6 +266,6 @@ class Dumper
             // some objects may not be fully accessible (e.g. instances of internal classes)
         }
 
-        return $output;
+        return $properties;
     }
 }

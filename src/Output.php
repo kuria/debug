@@ -1,91 +1,98 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\Debug;
 
 /**
  * Output utilities
- *
- * @author ShiraNai7 <shira.cz>
  */
-class Output
+abstract class Output
 {
-    /**
-     * This is a static class
-     */
-    private function __construct()
-    {
-    }
-
     /**
      * Attempt to clean output buffers
      *
      * Some built-in or non-removable buffers cannot be cleaned.
-     *
-     * @param int|null $targetLevel     target buffer level or null (= all buffers)
-     * @param bool     $capture         capture and return buffer contents 1/0
-     * @param bool     $catchExceptions catch buffer exceptions 1/0 (false = rethrow)
-     * @return string|bool captured buffer if $capture = true, boolean status otherwise
      */
-    public static function cleanBuffers($targetLevel = null, $capture = false, $catchExceptions = false)
+    static function cleanBuffers(?int $targetLevel = null, bool $catchExceptions = false): bool
     {
         if ($targetLevel === null) {
-            $targetLevel = 0;
-
-            if (ini_get('output_buffer') != '' || ini_get('output_handler') != '') {
-                ++$targetLevel;
-            }
-        }
-
-        if ($capture) {
-            $buffer = '';
+            $targetLevel = static::determineMinimalBufferLevel();
         }
 
         if (($bufferLevel = ob_get_level()) > $targetLevel) {
-            $cleanFunction = $capture ? 'ob_get_clean' : 'ob_end_clean';
-
             do {
                 $lastBufferLevel = $bufferLevel;
 
-                $e = null;
                 try {
-                    $result = $cleanFunction();
-                } catch (\Exception $e) {
+                    ob_end_clean();
                 } catch (\Throwable $e) {
+                    if (!$catchExceptions) {
+                        throw $e;
+                    }
                 }
 
                 $bufferLevel = ob_get_level();
-
-                if ($e === null) {
-                    if ($capture) {
-                        $buffer = $result . $buffer;
-                    }
-                } elseif (!$catchExceptions) {
-                    throw $e;
-                }
             } while ($bufferLevel > $targetLevel && $bufferLevel < $lastBufferLevel);
         }
 
-        return $capture ? $buffer : $bufferLevel <= $targetLevel;
+        return $bufferLevel <= $targetLevel;
+    }
+
+    /**
+     * Attempt to capture output buffers
+     *
+     * Some built-in or non-removable buffers cannot be captured.
+     */
+    static function captureBuffers(?int $targetLevel = null, bool $catchExceptions = false): string
+    {
+        if ($targetLevel === null) {
+            $targetLevel = static::determineMinimalBufferLevel();
+        }
+
+        $buffer = '';
+
+        if (($bufferLevel = ob_get_level()) > $targetLevel) {
+            do {
+                $lastBufferLevel = $bufferLevel;
+
+                try {
+                    $buffer = ob_get_clean() . $buffer;
+                } catch (\Throwable $e) {
+                    if (!$catchExceptions) {
+                        throw $e;
+                    }
+                }
+
+                $bufferLevel = ob_get_level();
+            } while ($bufferLevel > $targetLevel && $bufferLevel < $lastBufferLevel);
+        }
+
+        return $buffer;
     }
 
     /**
      * Attempt to replace headers
-     *
-     * @param string[] $newHeaders list of new headers to set
-     * @return bool
      */
-    public static function replaceHeaders(array $newHeaders)
+    static function replaceHeaders(array $newHeaders): bool
     {
         if (!headers_sent()) {
             header_remove();
 
-            for ($i = 0; isset($newHeaders[$i]); ++$i) {
-                header($newHeaders[$i]);
+            foreach ($newHeaders as $header) {
+                header($header);
             }
 
             return true;
         }
 
         return false;
+    }
+
+    protected static function determineMinimalBufferLevel(): int
+    {
+        if (!empty(ini_get('output_buffer')) || !empty(ini_get('output_handler'))) {
+            return 1;
+        } else {
+            return 0;
+        }
     }
 }

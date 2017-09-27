@@ -1,86 +1,127 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\Debug;
 
-class OutputTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class OutputTest extends TestCase
 {
-    public function testCleanBuffers()
-    {
-        $bufferLevel = ob_get_level();
-        
-        for ($i = 0; $i < 5; ++$i) {
-            ob_start();
-            echo $i;
-        }
-        
-        $buffer = Output::cleanBuffers($bufferLevel, true);
-
-        $this->assertSame('01234', $buffer);
-        $this->assertSame($bufferLevel, ob_get_level());
-    }
-
-    public function testCleanBuffersWithCaughtException()
+    function testCleanBuffers()
     {
         $initialBufferLevel = ob_get_level();
-
-        ob_start();
-        echo 'a';
-
-        ob_start(function ($buffer, $phase) {
-            if (($phase & PHP_OUTPUT_HANDLER_CLEAN) !== (0)) {
-                throw new \Exception('Test buffer exception');
-            }
-        });
-        echo 'b';
-
-        ob_start();
-        echo 'c';
-
-        $buffer = Output::cleanBuffers($initialBufferLevel, true, true);
-
-        $this->assertSame('ac', $buffer); // b gets discarded
+        
+        $this->prepareTestOutputBuffers();
+        
+        $this->assertTrue(Output::cleanBuffers($initialBufferLevel));
         $this->assertSame($initialBufferLevel, ob_get_level());
     }
 
-    public function testCleanBuffersWithRethrownException()
+    function testCaptureBuffers()
     {
-        $bufferLevel = ob_get_level();
-        $testBufferException = new \Exception('Test buffer exception');
+        $initialBufferLevel = ob_get_level();
 
-        ob_start();
-        echo 'lorem';
+        $this->prepareTestOutputBuffers();
 
-        ob_start(function ($buffer, $phase) use ($testBufferException) {
-            if ((PHP_OUTPUT_HANDLER_END & $phase) !== (0)) {
-                throw $testBufferException;
-            }
-        });
-        
-        echo 'ipsum';
+        $this->assertSame('abcd', Output::captureBuffers($initialBufferLevel));
+        $this->assertSame($initialBufferLevel, ob_get_level());
+    }
 
-        ob_start();
-        echo 'dolor';
+    function testCleanBuffersWithCaughtException()
+    {
+        $initialBufferLevel = ob_get_level();
+
+        $this->prepareExceptionThrowingOutputBuffers();
+
+        $this->assertTrue(Output::cleanBuffers($initialBufferLevel, true));
+        $this->assertSame($initialBufferLevel, ob_get_level());
+    }
+
+    function testCaptureBuffersWithCaughtException()
+    {
+        $initialBufferLevel = ob_get_level();
+
+        $this->prepareExceptionThrowingOutputBuffers();
+
+        $this->assertSame('ac', Output::captureBuffers($initialBufferLevel, true)); // b gets discarded
+        $this->assertSame($initialBufferLevel, ob_get_level());
+    }
+
+    function testCleanBuffersWithRethrownException()
+    {
+        $initialBufferLevel = ob_get_level();
+        $bufferException = new \Exception();
+
+        $this->prepareExceptionThrowingOutputBuffers($bufferException);
         
         $e = null;
 
         try {
-            Output::cleanBuffers($bufferLevel);
-        } catch (\Exception $e) {
-            $this->assertSame($testBufferException, $e);
+            Output::cleanBuffers($initialBufferLevel);
+        } catch (\Throwable $e) {
+            $this->assertSame($bufferException, $e);
         }
 
-        Output::cleanBuffers($bufferLevel, false, true);
+        $this->assertTrue(Output::cleanBuffers($initialBufferLevel, true));
 
         if ($e === null) {
             $this->fail('The buffer exception was not rethrown');
         }
 
-        $this->assertSame($bufferLevel, ob_get_level());
+        $this->assertSame($initialBufferLevel, ob_get_level());
     }
 
-    public function testCleanBuffersAboveCurrentLevel()
+    function testCaptureBuffersWithRethrownException()
+    {
+        $initialBufferLevel = ob_get_level();
+        $bufferException = new \Exception();
+
+        $this->prepareExceptionThrowingOutputBuffers($bufferException);
+
+        $e = null;
+
+        try {
+            Output::cleanBuffers($initialBufferLevel);
+        } catch (\Throwable $e) {
+            $this->assertSame($bufferException, $e);
+        }
+
+        $this->assertSame('a', Output::captureBuffers($initialBufferLevel));
+
+        if ($e === null) {
+            $this->fail('The buffer exception was not rethrown');
+        }
+
+        $this->assertSame($initialBufferLevel, ob_get_level());
+    }
+
+    function testCleanBuffersAboveCurrentLevel()
     {
         $this->assertTrue(Output::cleanBuffers(ob_get_level() + 1));
-        $this->assertSame('', Output::cleanBuffers(ob_get_level() + 1, true));
+        $this->assertSame('', Output::captureBuffers(ob_get_level() + 1));
+    }
+
+    private function prepareTestOutputBuffers()
+    {
+        for ($l = 'a'; $l <= 'd'; ++$l) {
+            ob_start();
+            echo $l;
+        }
+    }
+
+    private function prepareExceptionThrowingOutputBuffers(?\Throwable $exception = null): void
+    {
+        ob_start();
+        echo 'a';
+
+        ob_start(function ($buffer, $phase) use ($exception) {
+            if ((PHP_OUTPUT_HANDLER_END & $phase) !== (0)) {
+                throw $exception ?: new \Exception();
+            }
+        });
+
+        echo 'b';
+
+        ob_start();
+        echo 'c';
     }
 }

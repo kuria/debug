@@ -1,6 +1,14 @@
 Changelog
 #########
 
+2.0.0
+*****
+
+- updated to PHP 7.1
+- ``Dumper::getObjectProperties()`` now always returns ``ReflectionProperty[]``
+- added ``Output::captureBuffers()`` (separated from ``Output::cleanBuffers()``)
+- code style improvements
+
 
 1.0.3
 *****

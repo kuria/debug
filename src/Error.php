@@ -1,16 +1,14 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\Debug;
 
 /**
  * PHP error & exception utilities
- *
- * @author ShiraNai7 <shira.cz>
  */
-class Error
+abstract class Error
 {
     /** @var string[] */
-    private static $errorCodes = array(
+    protected const CODES = [
         E_ERROR => 'Error',
         E_WARNING => 'Warning',
         E_PARSE => 'Parse error',
@@ -26,38 +24,25 @@ class Error
         E_RECOVERABLE_ERROR => 'Recoverable error',
         E_DEPRECATED => 'Deprecated',
         E_USER_DEPRECATED => 'User deprecated',
-    );
-
-    /**
-     * This is a static class
-     */
-    private function __construct()
-    {
-    }
+    ];
 
     /**
      * Get PHP error name by its code
-     *
-     * @param int $code PHP error code
-     * @return string|null
      */
-    public static function getErrorNameByCode($code)
+    static function getErrorNameByCode(int $code): ?string
     {
-        if (isset(static::$errorCodes[$code])) {
-            return static::$errorCodes[$code];
-        }
+        return static::CODES[$code] ?? null;
     }
 
     /**
      * List exceptions starting from the given exception
      *
-     * @param \Throwable|\Exception $node the current exception instance
-     * @return \Exception[]|\Throwable[]
+     * @return \Throwable[]
      */
-    public static function getExceptionChain($node)
+    static function getExceptionChain(\Throwable $node): array
     {
-        $chain = array();
-        $hashMap = array();
+        $chain = [];
+        $hashMap = [];
 
         while ($node !== null && !isset($hashMap[$hash = spl_object_hash($node)])) {
             $chain[] = $node;
@@ -71,14 +56,10 @@ class Error
     /**
      * Join exception chains together
      *
-     * @param \Throwable|\Exception $exception1,...
-     * @return \Throwable|\Exception|null the last exception passed
+     * Returns the last exception or NULL if no exceptions were given.
      */
-    public static function joinExceptionChains()
+    static function joinExceptionChains(\Throwable ...$nodes): ?\Throwable
     {
-        /** @var \Exception[] $nodes */
-        $nodes = func_get_args();
-
         $lastNodeIndex = sizeof($nodes) - 1;
 
         if ($lastNodeIndex > 0) {
@@ -86,7 +67,7 @@ class Error
             for ($i = 0; $i < $lastNodeIndex; ++$i) {
                 // find initial node of the next chain
                 $initialNode = $nodes[$i + 1];
-                $hashMap = array();
+                $hashMap = [];
                 while (($previousNode = $initialNode->getPrevious()) && !isset($hashMap[$hash = spl_object_hash($previousNode)])) {
                     $initialNode = $previousNode;
                 }
@@ -110,17 +91,10 @@ class Error
 
     /**
      * Get textual information about an exception
-     *
-     * @param \Throwable|\Exception $exception      the exception instance
-     * @param bool                  $renderTrace    render exception traces 1/0
-     * @param bool                  $renderPrevious render previous exceptions 1/0
-     * @return string
      */
-    public static function renderException($exception, $renderTrace = true, $renderPrevious = false)
+    static function renderException(\Throwable $exception, bool $renderTrace = true, bool $renderPrevious = false): string
     {
-        $exceptions = $renderPrevious
-            ? static::getExceptionChain($exception)
-            : array($exception);
+        $exceptions = $renderPrevious ? static::getExceptionChain($exception) : [$exception];
         $totalExceptions = sizeof($exceptions);
         $lastException = $totalExceptions - 1;
 
@@ -153,11 +127,8 @@ class Error
 
     /**
      * Get name of the given exception
-     *
-     * @param \Throwable|\Exception $exception
-     * @return string
      */
-    public static function getExceptionName($exception)
+    static function getExceptionName(\Throwable $exception): string
     {
         $name = null;
 
@@ -169,7 +140,7 @@ class Error
             $name = get_class($exception);
         }
 
-        if (($code = $exception->getCode()) !== (0)) {
+        if (($code = $exception->getCode()) !== 0) {
             $name .= " ({$code})";
         }
 

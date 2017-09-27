@@ -7,6 +7,12 @@ Collection of useful debugging utilities.
    :depth: 2
 
 
+Requirements
+************
+
+PHP 7.1+
+
+
 Dumper
 ******
 
@@ -24,7 +30,7 @@ Dumping arbitrary PHP values with nesting and string limits.
 
    use Kuria\Debug\Dumper;
 
-   $values = array(
+   $values = [
        'foo bar',
        123,
        -123,
@@ -36,7 +42,7 @@ Dumping arbitrary PHP values with nesting and string limits.
        null,
        array(1, 2, 3),
        new \stdClass(),
-   );
+   ];
 
    echo Dumper::dump($values);
 
@@ -68,7 +74,7 @@ Output:
   B. the properties cannot be displayed due to the nesting limit
 
 - if an object implements the ``\DateTimeInterface``, its value
-  will be formatted as ``DATE_RFC1123`` and displayed
+  will be formatted as a string
 
 
 Dumping strings
@@ -136,20 +142,32 @@ Output:
 
   Array
   (
-      [staticProperty] => lorem
-      [publicProperty] => ipsum
-      [privateProperty] => dolor
-  )
+      [staticProperty] => ReflectionProperty Object
+          (
+              [name] => staticProperty
+              [class] => Foo\Foo
+          )
 
-See other arguments of ``getObjectProperties()`` to exclude static
-properties or to get a map of ``ReflectionProperty`` instances
-instead.
+      [publicProperty] => ReflectionProperty Object
+          (
+              [name] => publicProperty
+              [class] => Foo\Foo
+          )
+
+      [privateProperty] => ReflectionProperty Object
+          (
+              [name] => privateProperty
+              [class] => Foo\Foo
+          )
+
+  )
 
 
 Output
 ******
 
 Utilities related to PHP's output system.
+
 
 Cleaning output buffers
 =======================
@@ -166,11 +184,27 @@ Cleaning output buffers
    // clean buffers up to a certain level
    Output::cleanBuffers(2);
 
-   // clean and capture all buffers
+   // clean all buffers and catch exceptions
    $bufferedOutput = Output::cleanBuffers(null, true);
 
-   // clean and capture all buffers while ignoring exceptions
-   $bufferedOutput = Output::cleanBuffers(null, true, true);
+
+Capturing output buffers
+========================
+
+.. code:: php
+
+   <?php
+
+   use Kuria\Debug\Output;
+
+   // capture all buffers
+   Output::captureBuffers();
+
+   // capture buffers up to a certain level
+   Output::captureBuffers(2);
+
+   // capture all buffers and catch exceptions
+   $bufferedOutput = Output::captureBuffers(null, true);
 
 
 Replacing all headers

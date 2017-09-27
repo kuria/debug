@@ -1,21 +1,23 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\Debug;
 
-class ErrorTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class ErrorTest extends TestCase
 {
-    public function testGetExceptionChain()
+    function testGetExceptionChain()
     {
         $c = new \Exception('C');
         $b = new \Exception('B', 0, $c);
         $a = new \Exception('A', 0, $b);
 
-        $this->assertSame(array($a, $b, $c), Error::getExceptionChain($a));
-        $this->assertSame(array($b, $c), Error::getExceptionChain($b));
-        $this->assertSame(array($c), Error::getExceptionChain($c));
+        $this->assertSame([$a, $b, $c], Error::getExceptionChain($a));
+        $this->assertSame([$b, $c], Error::getExceptionChain($b));
+        $this->assertSame([$c], Error::getExceptionChain($c));
     }
 
-    public function testJoinExceptionChains()
+    function testJoinExceptionChains()
     {
         $c = new \Exception('C');
         $b = new \Exception('B', 0, $c);
@@ -36,7 +38,7 @@ class ErrorTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($c->getPrevious());
     }
 
-    public function testJoinExceptionChainsWithoutPrevious()
+    function testJoinExceptionChainsWithoutPrevious()
     {
         $a = new \Exception();
         $b = new \Exception();
@@ -47,10 +49,7 @@ class ErrorTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($a, $b->getPrevious());
     }
 
-    /**
-     * @requires PHP 7.0
-     */
-    public function testJoinExceptionChainsWithDifferentExceptionHierarchies()
+    function testJoinExceptionChainsWithDifferentExceptionHierarchies()
     {
         $c = new \Exception('C');
         $b = new \Exception('B', 0, $c);
@@ -71,7 +70,7 @@ class ErrorTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($c->getPrevious());
     }
 
-    public function testRenderException()
+    function testRenderException()
     {
         $testException = new \Exception(
             'Test exception',
@@ -109,7 +108,7 @@ class ErrorTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($output, trim($output));
     }
 
-    public function testGetExceptionName()
+    function testGetExceptionName()
     {
         $this->assertSame('Exception', Error::getExceptionName(new \Exception('Test exception')));
         $this->assertSame('Exception (123)', Error::getExceptionName(new \Exception('Test exception', 123)));
@@ -119,9 +118,9 @@ class ErrorTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('ErrorException (789)', Error::getExceptionName(new \ErrorException('Test error', 789, 123456789)));
     }
 
-    public function testGetErrorNameByCode()
+    function testGetErrorNameByCode()
     {
-        $errorLevels = array(
+        $errorLevels = [
             E_ERROR => 'Error',
             E_WARNING => 'Warning',
             E_PARSE => 'Parse error',
@@ -137,7 +136,7 @@ class ErrorTest extends \PHPUnit_Framework_TestCase
             E_RECOVERABLE_ERROR => 'Recoverable error',
             E_DEPRECATED => 'Deprecated',
             E_USER_DEPRECATED => 'User deprecated',
-        );
+        ];
         
         foreach ($errorLevels as $code => $name) {
             $this->assertSame($name, Error::getErrorNameByCode($code));

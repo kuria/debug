@@ -1,69 +1,72 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\Debug;
 
-class DumperTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class DumperTest extends TestCase
 {
-    public function testDumpBasic()
+    function testDumpBasic()
     {
-        $assertions = array(
-            array('foo bar', '"foo bar"'),
-            array(123, '123'),
-            array(-123, '-123'),
-            array(1.53, '1.530000'),
-            array(-1.53, '-1.530000'),
-            array(INF, 'INF'),
-            array(-INF, '-INF'),
-            array(NAN, 'NaN'),
-            array(true, 'true'),
-            array(false, 'false'),
-            array(STDIN, 'resource\(stream#\d+\)', true),
-            array(null, 'NULL'),
-            array(array(1, 2, 3), 'array[3]'),
-            array(new \stdClass(), 'object(stdClass)'),
-        );
+        $assertions = [
+            ['foo bar', '"foo bar"'],
+            [123, '123'],
+            [-123, '-123'],
+            [1.53, '1.530000'],
+            [-1.53, '-1.530000'],
+            [INF, 'INF'],
+            [-INF, '-INF'],
+            [NAN, 'NaN'],
+            [true, 'true'],
+            [false, 'false'],
+            [STDIN, 'resource\(stream#\d+\)', true],
+            [null, 'NULL'],
+            [[1, 2, 3], 'array[3]'],
+            [new \stdClass(), 'object(stdClass)'],
+            [new class {}, 'object(<anonymous>)'],
+        ];
 
         $this->assertDumpResults($assertions, 1);
     }
 
-    public function testDumpString()
+    function testDumpString()
     {
-        $assertions = array(
-            array('12345678910', '"1234567891"...'),
-            array('123456789žč', '"123456789ž"...'),
-            array("\000", '"\000"'),
-            array("\001", '"\001"'),
-            array("\002", '"\002"'),
-            array("\003", '"\003"'),
-            array("\004", '"\004"'),
-            array("\005", '"\005"'),
-            array("\006", '"\006"'),
-            array("\007", '"\a"'),
-            array("\010", '"\b"'),
-            array("\011", '"\t"'),
-            array("\012", '"\n"'),
-            array("\013", '"\v"'),
-            array("\014", '"\f"'),
-            array("\015", '"\r"'),
-            array("\016", '"\016"'),
-            array("\017", '"\017"'),
-            array("\020", '"\020"'),
-            array("\021", '"\021"'),
-            array("\022", '"\022"'),
-            array("\023", '"\023"'),
-            array("\024", '"\024"'),
-            array("\025", '"\025"'),
-            array("\026", '"\026"'),
-            array("\027", '"\027"'),
-            array("\030", '"\030"'),
-            array("\031", '"\031"'),
-            array("\032", '"\032"'),
-            array("\033", '"\033"'),
-            array("\034", '"\034"'),
-            array("\035", '"\035"'),
-            array("\036", '"\036"'),
-            array("\037", '"\037"'),
-        );
+        $assertions = [
+            ['12345678910', '"1234567891"...'],
+            ['123456789žč', '"123456789ž"...'],
+            ["\000", '"\000"'],
+            ["\001", '"\001"'],
+            ["\002", '"\002"'],
+            ["\003", '"\003"'],
+            ["\004", '"\004"'],
+            ["\005", '"\005"'],
+            ["\006", '"\006"'],
+            ["\007", '"\a"'],
+            ["\010", '"\b"'],
+            ["\011", '"\t"'],
+            ["\012", '"\n"'],
+            ["\013", '"\v"'],
+            ["\014", '"\f"'],
+            ["\015", '"\r"'],
+            ["\016", '"\016"'],
+            ["\017", '"\017"'],
+            ["\020", '"\020"'],
+            ["\021", '"\021"'],
+            ["\022", '"\022"'],
+            ["\023", '"\023"'],
+            ["\024", '"\024"'],
+            ["\025", '"\025"'],
+            ["\026", '"\026"'],
+            ["\027", '"\027"'],
+            ["\030", '"\030"'],
+            ["\031", '"\031"'],
+            ["\032", '"\032"'],
+            ["\033", '"\033"'],
+            ["\034", '"\034"'],
+            ["\035", '"\035"'],
+            ["\036", '"\036"'],
+            ["\037", '"\037"'],
+        ];
 
         $this->assertDumpResults($assertions, 1, 10);
     }
@@ -74,7 +77,7 @@ class DumperTest extends \PHPUnit_Framework_TestCase
      * @param int    $width
      * @param string  $expectedOutput
      */
-    public function testDumpStringAsHex($string, $width, $expectedOutput)
+    function testDumpStringAsHex($string, $width, $expectedOutput)
     {
         $this->assertSame($expectedOutput, Dumper::dumpStringAsHex($string, $width));
     }
@@ -82,10 +85,10 @@ class DumperTest extends \PHPUnit_Framework_TestCase
     /**
      * @return array[]
      */
-    public function provideStringsToDumpAsHex()
+    function provideStringsToDumpAsHex()
     {
-        return array(
-            array(
+        return [
+            [
                 "Lorem ipsum dolor sit amet\nThis is a null byte: \x00",
                 16,
                 <<<EXPECTED
@@ -95,8 +98,8 @@ class DumperTest extends \PHPUnit_Framework_TestCase
     30 : 00                                              [.]
 EXPECTED
                 ,
-            ),
-            array(
+            ],
+            [
                 "Foo\r\nBar",
                 5,
                 <<<EXPECTED
@@ -104,11 +107,11 @@ EXPECTED
      5 : 42 61 72       [Bar]
 EXPECTED
             ,
-            ),
-        );
+            ],
+        ];
     }
     
-    public function testDumpObject()
+    function testDumpObject()
     {
         $testPropertyObject = new TestPropertiesA();
         $testPropertyObject->dynamic = 'hello';
@@ -119,8 +122,8 @@ EXPECTED
         $testKeyEscapesObject->{"key-escapes-\t\n\v"} = 'a';
         $testKeyEscapesObject->{"key-binary-\001\002"} = 'b';
 
-        $assertions = array(
-            array($testPropertyObject, <<<EXPECTED
+        $assertions = [
+            [$testPropertyObject, <<<EXPECTED
 object(Kuria\Debug\TestPropertiesA) {
     public static [staticPublic] => "staticPublicA"
     protected static [staticProtected] => "staticProtectedA"
@@ -132,34 +135,34 @@ object(Kuria\Debug\TestPropertiesA) {
     public [dynamic] => "hello"
 }
 EXPECTED
-            ),
-            array(new \DateTime('2015-01-01 00:00 UTC'), 'object(DateTime) "Thu, 01 Jan 2015 00:00:00 +0000"'),
-            array(new TestToString(), 'object(Kuria\Debug\TestToString) "foo bar"'),
-            array($testKeyEscapesObject, <<<'EXPECTED'
+            ],
+            [new \DateTime('2015-01-01 00:00 UTC'), 'object(DateTime) "Thu, 01 Jan 2015 00:00:00 +0000"'],
+            [new TestToString(), 'object(Kuria\Debug\TestToString) "foo bar"'],
+            [$testKeyEscapesObject, <<<'EXPECTED'
 object(stdClass) {
     public [key-escapes-\t\n\v] => "a"
     public [key-binary-\001\002] => "b"
 }
 EXPECTED
-            ),
-            array(new TestDebugInfo(), <<<EXPECTED
+            ],
+            [new TestDebugInfo(), <<<EXPECTED
 object(Kuria\Debug\TestDebugInfo) {
     [foo] => "bar"
 }
 EXPECTED
-            ),
-        );
+            ],
+        ];
 
         $this->assertDumpResults($assertions);
     }
 
-    public function testDumpDeepObject()
+    function testDumpDeepObject()
     {
         $testObject = new \stdClass();
 
         $testObject->nestedObject = new \stdClass();
 
-        $testObject->nestedObject->foo = array(1, 2, 3);
+        $testObject->nestedObject->foo = [1, 2, 3];
         $testObject->nestedObject->bar = new TestPropertiesA();
         $testObject->nestedObject->baz = new TestToString();        
 
@@ -176,17 +179,17 @@ EXPECTED;
         $this->assertSame($expected, Dumper::dump($testObject, 3));
     }
 
-    public function testDumpArray()
+    function testDumpArray()
     {
-        $testArray = array(
+        $testArray = [
             "hello" => 'world',
             "key_escapes_\000\011\012\013\014\015" => 'a',
             "key_binary_\000\001\002" => 'b',
-            'nested_array' => array(
+            'nested_array' => [
                 123,
-                array(1, 2, 3),
-            ),
-        );
+                [1, 2, 3],
+            ],
+        ];
 
         $expected = <<<'EXPECTED'
 array[4] {
@@ -209,25 +212,15 @@ EXPECTED;
      * @param bool   $includeStatic
      * @param array  $expectedProperties
      */
-    public function testGetObjectProperties($object, $includeStatic, array $expectedProperties)
+    function testGetObjectProperties($object, $includeStatic, array $expectedProperties)
     {
-        $this->assertSame($expectedProperties, Dumper::getObjectProperties($object, $includeStatic));
-    }
-
-    /**
-     * @dataProvider provideObjectProperties
-     * @param object $object
-     * @param bool   $includeStatic
-     * @param array  $expectedProperties
-     */
-    public function testGetObjectPropertiesWithReflection($object, $includeStatic, array $expectedProperties)
-    {
-        $propertyReflections = Dumper::getObjectProperties($object, $includeStatic, true);
+        $propertyReflections = Dumper::getObjectProperties($object, $includeStatic);
 
         $this->assertSame(array_keys($expectedProperties), array_keys($propertyReflections));
 
         foreach ($propertyReflections as $propertyReflection) {
             $this->assertInstanceOf('ReflectionProperty', $propertyReflection);
+            $propertyReflection->setAccessible(true);
             $this->assertSame($expectedProperties[$propertyReflection->getName()], $propertyReflection->getValue($object));
         }
     }
@@ -235,7 +228,7 @@ EXPECTED;
     /**
      * @return array[]
      */
-    public function provideObjectProperties()
+    function provideObjectProperties()
     {
         $a = new TestPropertiesA();
         $a->dynamic = 'dynamicA';
@@ -243,12 +236,12 @@ EXPECTED;
         $b = new TestPropertiesB();
         $b->dynamic = 'dynamicB';
 
-        return array(
-            // $object, $includeStatic, $expectedProperties
-            array(
+        return [
+            // object, includeStatic, expectedProperties
+            [
                 $a,
                 true,
-                array(
+                [
                     'staticPublic' => 'staticPublicA',
                     'staticProtected' => 'staticProtectedA',
                     'staticPrivate' => 'staticPrivateA',
@@ -257,23 +250,23 @@ EXPECTED;
                     'private' => 'privateA',
                     'privateNonShadowed' => 'privateNonShadowedA',
                     'dynamic' => 'dynamicA',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 $a,
                 false,
-                array(
+                [
                     'public' => 'publicA',
                     'protected' => 'protectedA',
                     'private' => 'privateA',
                     'privateNonShadowed' => 'privateNonShadowedA',
                     'dynamic' => 'dynamicA',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 $b,
                 true,
-                array(
+                [
                     'staticPublic' => 'staticPublicB',
                     'staticProtected' => 'staticProtectedB',
                     'staticPrivate' => 'staticPrivateB',
@@ -282,20 +275,20 @@ EXPECTED;
                     'private' => 'privateB',
                     'dynamic' => 'dynamicB',
                     'privateNonShadowed' => 'privateNonShadowedA',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 $b,
                 false,
-                array(
+                [
                     'public' => 'publicB',
                     'protected' => 'protectedB',
                     'private' => 'privateB',
                     'dynamic' => 'dynamicB',
                     'privateNonShadowed' => 'privateNonShadowedA',
-                ),
-            ),
-        );
+                ],
+            ],
+        ];
     }
 
     /**
@@ -304,7 +297,7 @@ EXPECTED;
     private function assertDumpResults(array $assertions, $maxLevel = 2, $maxStringLen = 64)
     {
         foreach ($assertions as $assertion) {
-            list($value, $expected, $isRegex) = $assertion + array(2 => null);
+            list($value, $expected, $isRegex) = $assertion + [2 => null];
 
             $result = Dumper::dump($value, $maxLevel, $maxStringLen);
 
@@ -349,7 +342,7 @@ class TestPropertiesB extends TestPropertiesA
  */
 class TestToString
 {
-    public function __toString()
+    function __toString()
     {
         return 'foo bar';
     }
@@ -362,10 +355,10 @@ class TestDebugInfo
 {
     public $someprop = 'somevalue';
 
-    public function __debugInfo()
+    function __debugInfo()
     {
-        return array(
+        return [
             'foo' => 'bar',
-        );
+        ];
     }
 }
