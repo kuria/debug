@@ -1,13 +1,13 @@
 {
     "name": "kuria/debug",
-    "description": "Collection of useful debugging utilities.",
+    "description": "Collection of useful debugging utilities",
     "keywords": ["debug", "dump", "var_dump", "hex", "exception", "error"],
     "license": "MIT",
     "require": {
-        "php": ">=7.1.0"
+        "php": ">=7.1"
     },
     "require-dev": {
-        "phpunit/phpunit": "^6.2"
+        "phpunit/phpunit": "^6.5"
     },
     "autoload": {
         "psr-4": {
