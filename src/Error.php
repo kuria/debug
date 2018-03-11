@@ -8,7 +8,7 @@ namespace Kuria\Debug;
 abstract class Error
 {
     /** @var string[] */
-    protected const CODES = [
+    private const CODES = [
         E_ERROR => 'Error',
         E_WARNING => 'Warning',
         E_PARSE => 'Parse error',
@@ -31,7 +31,7 @@ abstract class Error
      */
     static function getErrorNameByCode(int $code): ?string
     {
-        return static::CODES[$code] ?? null;
+        return self::CODES[$code] ?? null;
     }
 
     /**

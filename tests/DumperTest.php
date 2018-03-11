@@ -110,7 +110,7 @@ EXPECTED
             ],
         ];
     }
-    
+
     function testDumpObject()
     {
         $testPropertyObject = new TestPropertiesA();
@@ -164,7 +164,7 @@ EXPECTED
 
         $testObject->nestedObject->foo = [1, 2, 3];
         $testObject->nestedObject->bar = new TestPropertiesA();
-        $testObject->nestedObject->baz = new TestToString();        
+        $testObject->nestedObject->baz = new TestToString();
 
         $expected = <<<EXPECTED
 object(stdClass) {
@@ -312,10 +312,11 @@ EXPECTED;
 
 /**
  * @internal
+ * @property mixed $dynamic
  */
 class TestPropertiesA
 {
-    public static $staticPublic = 'staticPublicA';
+    static $staticPublic = 'staticPublicA';
     protected static $staticProtected = 'staticProtectedA';
     private static $staticPrivate = 'staticPrivateA';
     public $public = 'publicA';
@@ -326,10 +327,11 @@ class TestPropertiesA
 
 /**
  * @internal
+ * @property mixed $dynamic
  */
 class TestPropertiesB extends TestPropertiesA
 {
-    public static $staticPublic = 'staticPublicB';
+    static $staticPublic = 'staticPublicB';
     protected static $staticProtected = 'staticProtectedB';
     private static $staticPrivate = 'staticPrivateB';
     public $public = 'publicB';

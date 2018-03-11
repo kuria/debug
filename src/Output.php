@@ -15,7 +15,7 @@ abstract class Output
     static function cleanBuffers(?int $targetLevel = null, bool $catchExceptions = false): bool
     {
         if ($targetLevel === null) {
-            $targetLevel = static::determineMinimalBufferLevel();
+            $targetLevel = self::determineMinimalBufferLevel();
         }
 
         if (($bufferLevel = ob_get_level()) > $targetLevel) {
@@ -45,7 +45,7 @@ abstract class Output
     static function captureBuffers(?int $targetLevel = null, bool $catchExceptions = false): string
     {
         if ($targetLevel === null) {
-            $targetLevel = static::determineMinimalBufferLevel();
+            $targetLevel = self::determineMinimalBufferLevel();
         }
 
         $buffer = '';
@@ -87,7 +87,7 @@ abstract class Output
         return false;
     }
 
-    protected static function determineMinimalBufferLevel(): int
+    private static function determineMinimalBufferLevel(): int
     {
         if (!empty(ini_get('output_buffer')) || !empty(ini_get('output_handler'))) {
             return 1;

@@ -9,9 +9,9 @@ class OutputTest extends TestCase
     function testCleanBuffers()
     {
         $initialBufferLevel = ob_get_level();
-        
+
         $this->prepareTestOutputBuffers();
-        
+
         $this->assertTrue(Output::cleanBuffers($initialBufferLevel));
         $this->assertSame($initialBufferLevel, ob_get_level());
     }
@@ -52,7 +52,7 @@ class OutputTest extends TestCase
         $bufferException = new \Exception();
 
         $this->prepareExceptionThrowingOutputBuffers($bufferException);
-        
+
         $e = null;
 
         try {

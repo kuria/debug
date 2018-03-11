@@ -34,7 +34,9 @@ abstract class Dumper
                     // full
                     $output .= 'array[' . sizeof($value) . "] {\n";
                     foreach ($value as $key => $property) {
-                        $output .= $indent . (is_string($key) ? static::dumpString($key, $maxStringLen, $encoding, ['[', ']'], '...') : "[{$key}]") . ' => ';
+                        $output .= $indent
+                            . (is_string($key) ? static::dumpString($key, $maxStringLen, $encoding, ['[', ']'], '...') : "[{$key}]")
+                            . ' => ';
                         $output .= static::dump($property, $maxLevel, $maxStringLen, $encoding, $currentLevel + 1);
                         $output .= "\n";
                     }
@@ -91,13 +93,24 @@ abstract class Dumper
                                     . implode(' ', \Reflection::getModifierNames($reflectionProperty->getModifiers())) . ' '
                                     . static::dumpString($propertyName, $maxStringLen, $encoding, ['[', ']'], '...')
                                     . ' => ';
-                                $output .= static::dump($reflectionProperty->getValue($value), $maxLevel, $maxStringLen, $encoding, $currentLevel + 1);
+                                $output .= static::dump(
+                                    $reflectionProperty->getValue($value),
+                                    $maxLevel,
+                                    $maxStringLen,
+                                    $encoding,
+                                    $currentLevel + 1
+                                );
                                 $output .= "\n";
                             }
                             $propertyName = $reflectionProperty = null;
                         } else {
                             foreach ($properties as $propertyName => $propertyValue) {
-                                $output .= $indent . (is_string($propertyName) ? static::dumpString($propertyName, $maxStringLen, $encoding, ['[', ']'], '...') : "[{$propertyName}]") . ' => ';
+                                $output .= $indent
+                                    . (is_string($propertyName)
+                                        ? static::dumpString($propertyName, $maxStringLen, $encoding, ['[', ']'], '...')
+                                        : "[{$propertyName}]"
+                                    )
+                                    . ' => ';
                                 $output .= static::dump($propertyValue, $maxLevel, $maxStringLen, $encoding, $currentLevel + 1);
                                 $output .= "\n";
                             }
@@ -194,8 +207,6 @@ abstract class Dumper
      */
     static function dumpStringAsHex(string $string, int $width = self::DEFAULT_HEX_WIDTH): string
     {
-        $string = (string) $string;
-
         static $from = '';
         static $to = '';
 

@@ -137,7 +137,7 @@ class ErrorTest extends TestCase
             E_DEPRECATED => 'Deprecated',
             E_USER_DEPRECATED => 'User deprecated',
         ];
-        
+
         foreach ($errorLevels as $code => $name) {
             $this->assertSame($name, Error::getErrorNameByCode($code));
         }
