@@ -60,7 +60,7 @@ abstract class Error
      */
     static function joinExceptionChains(\Throwable ...$nodes): ?\Throwable
     {
-        $lastNodeIndex = sizeof($nodes) - 1;
+        $lastNodeIndex = count($nodes) - 1;
 
         if ($lastNodeIndex > 0) {
             // iterate over all but the last node
@@ -95,7 +95,7 @@ abstract class Error
     static function renderException(\Throwable $exception, bool $renderTrace = true, bool $renderPrevious = false): string
     {
         $exceptions = $renderPrevious ? static::getExceptionChain($exception) : [$exception];
-        $totalExceptions = sizeof($exceptions);
+        $totalExceptions = count($exceptions);
         $lastException = $totalExceptions - 1;
 
         $output = '';

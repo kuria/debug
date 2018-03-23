@@ -32,7 +32,7 @@ abstract class Dumper
             case 'array':
                 if ($currentLevel < $maxLevel && $value) {
                     // full
-                    $output .= 'array[' . sizeof($value) . "] {\n";
+                    $output .= 'array[' . count($value) . "] {\n";
                     foreach ($value as $key => $property) {
                         $output .= $indent
                             . (is_string($key) ? static::dumpString($key, $maxStringLen, $encoding, ['[', ']'], '...') : "[{$key}]")
@@ -47,7 +47,7 @@ abstract class Dumper
                     $output .= "}";
                 } else {
                     // short
-                    $output .= 'array[' . sizeof($value) . "]";
+                    $output .= 'array[' . count($value) . "]";
                 }
                 break;
 
@@ -267,7 +267,7 @@ abstract class Dumper
                 foreach ($reflection->getProperties($parentFilter) as $property) {
                     if (
                         ($includeStatic || !$property->isStatic())
-                        && !array_key_exists($name = $property->getName(), $properties)
+                        && !key_exists($name = $property->getName(), $properties)
                     ) {
                         $properties[$name] = $property;
                     }
