@@ -1,6 +1,14 @@
 Changelog
 #########
 
+4.0.0
+*****
+
+- split ``Error`` class into ``Error`` and ``Exception``
+- ``Error::getName()`` now returns the constant name instead of an english transcription
+- ``Dumper`` now displays source information for anonymous classes
+
+
 3.0.0
 *****
 

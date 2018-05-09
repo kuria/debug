@@ -25,7 +25,7 @@ Utilities for inspecting arbitrary values.
 Dumping any value
 =================
 
-Dumping arbitrary PHP values with nesting and string limits.
+Dumping arbitrary PHP values with nesting and string length limits.
 
 .. code:: php
 
@@ -227,11 +227,11 @@ Replace all headers (unless they've been sent already):
 Error
 *****
 
-PHP error and exception utilities.
+PHP error utilities.
 
 
-Getting a name for standard error code
-======================================
+Getting name of a PHP error code
+================================
 
 .. code:: php
 
@@ -239,14 +239,19 @@ Getting a name for standard error code
 
    use Kuria\Debug\Error;
 
-   var_dump(Error::getErrorNameByCode(E_USER_ERROR));
+   var_dump(Error::getName(E_USER_ERROR));
 
 Output:
 
 ::
 
-  string(10) "User error"
+  string(10) "E_USER_ERROR"
 
+
+Exception
+*********
+
+Exception utilities.
 
 Rendering an exception
 ======================
@@ -255,12 +260,12 @@ Rendering an exception
 
    <?php
 
-   use Kuria\Debug\Error;
+   use Kuria\Debug\Exception;
 
    $invalidArgumentException = new \InvalidArgumentException('Bad argument', 123);
    $runtimeException = new \RuntimeException('Something went wrong', 0, $invalidArgumentException);
 
-   echo Error::renderException($runtimeException);
+   echo Exception::render($runtimeException);
 
 Output:
 
@@ -277,7 +282,7 @@ Including all previous exceptions and excluding the traces
 
    <?php
 
-   echo Error::renderException($runtimeException, false, true);
+   echo Exception::render($runtimeException, false, true);
 
 Output:
 
@@ -294,7 +299,7 @@ Getting a list of all previous exceptions
 
    <?php
 
-   use Kuria\Debug\Error;
+   use Kuria\Debug\Exception;
 
    try {
        try {
@@ -303,7 +308,7 @@ Getting a list of all previous exceptions
            throw new \RuntimeException('Something went wrong', 0, $e);
        }
    } catch (\RuntimeException $e) {
-       $exceptions =  Error::getExceptionChain($e);
+       $exceptions = Exception::getChain($e);
 
        foreach ($exceptions as $exception) {
            echo $exception->getMessage(), "\n";
@@ -328,7 +333,7 @@ additional exception may be thrown.
 
    <?php
 
-   use Kuria\Debug\Error;
+   use Kuria\Debug\Exception;
 
    $c = new \Exception('C');
    $b = new \Exception('B', 0, $c);
@@ -339,15 +344,15 @@ additional exception may be thrown.
    $x = new \Exception('X', 0, $y);
 
    // print current chains
-   echo "A's chain:\n", Error::renderException($a, false, true), "\n\n";
-   echo "X's chain:\n", Error::renderException($x, false, true), "\n\n";
+   echo "A's chain:\n", Exception::render($a, false, true), "\n\n";
+   echo "X's chain:\n", Exception::render($x, false, true), "\n\n";
 
    // join chains (any number of exceptions can be passed)
    // from right to left: the last previous exception is joined to the exception on the left
-   Error::joinExceptionChains($a, $x);
+   Exception::joinChains($a, $x);
 
    // print the modified X chain
-   echo "X's modified chain:\n", Error::renderException($x, false, true), "\n";
+   echo "X's modified chain:\n", Exception::render($x, false, true), "\n";
 
 Output:
 
@@ -382,11 +387,11 @@ Without joining exception chains
 
    <?php
 
-   use Kuria\Debug\Error;
+   use Kuria\Debug\Exception;
 
    // print uncaught exceptions
    set_exception_handler(function ($uncaughtException) {
-       echo Error::renderException($uncaughtException, false, true);
+       echo Exception::render($uncaughtException, false, true);
    });
 
    try {
@@ -407,13 +412,14 @@ Output:
 
 ::
 
-  [1/2] Exception: Something went wrong while handling an exception in example.com on line 19
-  [2/2] Exception: Exception-handler exception in example.com on line 16
+  [1/2] Exception: Final exception in example.php on line 20
+  [2/2] Exception: Exception-handler exception in example.php on line 17
 
 Notice that the information about *Initial exception* is lost completely.
 
 We could glue the *Initial exception*'s info to the *Final exception*'s message,
 but that would be rather ugly and hard to read.
+
 
 With joining exception chains
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -434,7 +440,7 @@ With joining exception chains
            // the exception-handling code has crashed
 
            // join exception chains
-           Error::joinExceptionChains($exception, $additionalException);
+           Exception::joinChains($exception, $additionalException);
 
            throw new \Exception('Something went wrong while handling an exception', 0, $additionalException);
        }
@@ -444,8 +450,8 @@ Output:
 
 ::
 
-  [1/3] Exception: Something went wrong while handling an exception in example.com on line 21
-  [2/3] Exception: Exception-handler exception in example.com on line 16
-  [3/3] Exception: Initial exception in example.com on line 11
+    [1/3] Exception: Something went wrong while handling an exception in example.php on line 24
+    [2/3] Exception: Exception-handler exception in /example.php on line 17
+    [3/3] Exception: Initial exception in example.php on line 12
 
 Now the *Initial exception* is accessible as one of the previous exceptions.
