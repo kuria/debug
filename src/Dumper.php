@@ -24,146 +24,33 @@ abstract class Dumper
         ?string $encoding = null,
         int $currentLevel = 1
     ): string {
-        $output = '';
         $type = gettype($value);
-        $indent = str_repeat('    ', $currentLevel);
 
         switch ($type) {
             case 'array':
-                if ($currentLevel < $maxLevel && $value) {
-                    // full
-                    $output .= 'array[' . count($value) . "] {\n";
-                    foreach ($value as $key => $property) {
-                        $output .= $indent
-                            . (is_string($key) ? static::dumpString($key, $maxStringLen, $encoding, ['[', ']'], '...') : "[{$key}]")
-                            . ' => ';
-                        $output .= static::dump($property, $maxLevel, $maxStringLen, $encoding, $currentLevel + 1);
-                        $output .= "\n";
-                    }
-                    if ($currentLevel > 1) {
-                        $output .= str_repeat('    ', $currentLevel - 1);
-                    }
-                    $key = $property = null;
-                    $output .= "}";
-                } else {
-                    // short
-                    $output .= 'array[' . count($value) . "]";
-                }
-                break;
+                return self::dumpArray($value, $maxLevel, $maxStringLen, $encoding, $currentLevel);
 
             case 'object':
-                $output .= 'object(';
-                $className = get_class($value);
-
-                if (strpos($className, "\0") !== false) {
-                    $output .= '<anonymous>';
-                } else {
-                    $output .= $className;
-                }
-
-                $output .= ')';
-
-                // output formatted date-time value?
-                if ($value instanceof \DateTimeInterface) {
-                    $output .= " \"{$value->format(static::DATE_TIME_FORMAT)}\"";
-                    break;
-                }
-
-                // dump properties?
-                if ($currentLevel < $maxLevel) {
-                    if (method_exists($value, '__debugInfo')) {
-                        // use __debugInfo
-                        $properties = $value->__debugInfo();
-                        $isReflectionProperties = false;
-                    } else {
-                        // use actual properties
-                        $properties = static::getObjectProperties($value, true);
-                        $isReflectionProperties = true;
-                    }
-
-                    if ($properties) {
-                        // full
-                        $output .= " {\n";
-                        if ($isReflectionProperties) {
-                            foreach ($properties as $propertyName => $reflectionProperty) {
-                                $reflectionProperty->setAccessible(true);
-
-                                $output .=
-                                    $indent
-                                    . implode(' ', \Reflection::getModifierNames($reflectionProperty->getModifiers())) . ' '
-                                    . static::dumpString($propertyName, $maxStringLen, $encoding, ['[', ']'], '...')
-                                    . ' => ';
-                                $output .= static::dump(
-                                    $reflectionProperty->getValue($value),
-                                    $maxLevel,
-                                    $maxStringLen,
-                                    $encoding,
-                                    $currentLevel + 1
-                                );
-                                $output .= "\n";
-                            }
-                            $propertyName = $reflectionProperty = null;
-                        } else {
-                            foreach ($properties as $propertyName => $propertyValue) {
-                                $output .= $indent
-                                    . (is_string($propertyName)
-                                        ? static::dumpString($propertyName, $maxStringLen, $encoding, ['[', ']'], '...')
-                                        : "[{$propertyName}]"
-                                    )
-                                    . ' => ';
-                                $output .= static::dump($propertyValue, $maxLevel, $maxStringLen, $encoding, $currentLevel + 1);
-                                $output .= "\n";
-                            }
-                            $propertyName = $propertyValue = null;
-                        }
-
-                        $properties = null;
-
-                        if ($currentLevel > 1) {
-                            $output .= str_repeat('    ', $currentLevel - 1);
-                        }
-
-                        $output .= '}';
-                        break;
-                    }
-                }
-
-                // could not dump properties - use __toString() if available
-                if (method_exists($value, '__toString')) {
-                    $output .= ' ' . static::dumpString((string) $value, $maxStringLen, $encoding, ['"', '"'], '...');
-                }
-                break;
+                return self::dumpObject($value, $maxLevel, $maxStringLen, $encoding, $currentLevel);
 
             case 'string':
-                $output .= static::dumpString($value, $maxStringLen, $encoding, ['"', '"'], '...');
-                break;
+                return static::dumpString($value, $maxStringLen, $encoding, ['"', '"'], '...');
 
             case 'integer':
-                $output .= $value;
-                break;
+                return (string) $value;
 
             case 'double':
-                if (-INF === $value) {
-                    $output .= '-INF';
-                } else {
-                    $output .= sprintf('%F', $value);
-                }
-                break;
+                return -INF === $value ? '-INF' : sprintf('%F', $value);
 
             case 'boolean':
-                $output .= ($value ? 'true' : 'false');
-                break;
+                return $value ? 'true' : 'false';
 
             case 'resource':
-                $output .= 'resource(' . get_resource_type($value) . '#' . ((int) $value) . ")";
-                break;
+                return 'resource(' . get_resource_type($value) . '#' . ((int) $value) . ')';
 
             default:
-                $output .= $type;
-                break;
+                return $type;
         }
-
-        return $output;
     }
 
     /**
@@ -278,5 +165,115 @@ abstract class Dumper
         }
 
         return $properties;
+    }
+
+    private static function dumpArray(array $array, int $maxLevel, ?int $maxStringLen, ?string $encoding, int $currentLevel): string
+    {
+        $output = 'array[' . count($array) . ']';
+
+        if ($currentLevel >= $maxLevel || empty($array)) {
+            // short
+            return $output;
+        }
+
+        // full
+        $output .=" {\n";
+        $indent = str_repeat('    ', $currentLevel);
+
+        foreach ($array as $key => $property) {
+            $output .= $indent;
+            $output .= (is_string($key) ? static::dumpString($key, $maxStringLen, $encoding, ['[', ']'], '...') : "[{$key}]");
+            $output .= ' => ';
+            $output .= static::dump($property, $maxLevel, $maxStringLen, $encoding, $currentLevel + 1);
+            $output .= "\n";
+        }
+
+        if ($currentLevel > 1) {
+            $output .= str_repeat('    ', $currentLevel - 1);
+        }
+
+        $output .= '}';
+
+        return $output;
+    }
+
+    private static function dumpObject($value, int $maxLevel, ?int $maxStringLen, ?string $encoding, int $currentLevel): string
+    {
+        $output = 'object(';
+        $className = get_class($value);
+
+        if (($nullBytePos = strpos($className, "\0")) !== false) {
+            $output .= '<anonymous@' . substr($className, $nullBytePos + 1) . '>';
+        } else {
+            $output .= $className;
+        }
+
+        $output .= ')';
+
+        do {
+            // date time
+            if ($value instanceof \DateTimeInterface) {
+                $output .= " \"{$value->format(static::DATE_TIME_FORMAT)}\"";
+                break;
+            }
+
+            // full dump
+            if ($currentLevel < $maxLevel) {
+                if (method_exists($value, '__debugInfo')) {
+                    // use __debugInfo
+                    $properties = $value->__debugInfo();
+                    $isReflectionProperties = false;
+                } else {
+                    // use actual properties
+                    $properties = static::getObjectProperties($value, true);
+                    $isReflectionProperties = true;
+                }
+
+                if ($properties) {
+                    $indent = str_repeat('    ', $currentLevel);
+                    $output .= " {\n";
+
+                    if ($isReflectionProperties) {
+                        foreach ($properties as $propertyName => $reflectionProperty) {
+                            $reflectionProperty->setAccessible(true);
+
+                            $output .=
+                                $indent
+                                . implode(' ', \Reflection::getModifierNames($reflectionProperty->getModifiers())) . ' '
+                                . static::dumpString($propertyName, $maxStringLen, $encoding, ['[', ']'], '...')
+                                . ' => ';
+                            $output .= static::dump($reflectionProperty->getValue($value), $maxLevel, $maxStringLen, $encoding, $currentLevel + 1);
+                            $output .= "\n";
+                        }
+                    } else {
+                        foreach ($properties as $propertyName => $propertyValue) {
+                            $output .= $indent
+                                . (is_string($propertyName)
+                                    ? static::dumpString($propertyName, $maxStringLen, $encoding, ['[', ']'], '...')
+                                    : "[{$propertyName}]"
+                                )
+                                . ' => ';
+                            $output .= static::dump($propertyValue, $maxLevel, $maxStringLen, $encoding, $currentLevel + 1);
+                            $output .= "\n";
+                        }
+                    }
+
+                    if ($currentLevel > 1) {
+                        $output .= str_repeat('    ', $currentLevel - 1);
+                    }
+
+                    $output .= '}';
+                    break;
+                }
+            }
+
+            // short dump (or no properties) - use __toString() if available
+            if (method_exists($value, '__toString')) {
+                $output .= ' ' . static::dumpString((string) $value, $maxStringLen, $encoding, ['"', '"'], '...');
+                break;
+            }
+        } while (false);
+
+        return $output;
     }
 }

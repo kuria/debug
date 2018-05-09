@@ -23,7 +23,7 @@ class DumperTest extends TestCase
             [null, 'NULL'],
             [[1, 2, 3], 'array[3]'],
             [new \stdClass(), 'object(stdClass)'],
-            [new class {}, 'object(<anonymous>)'],
+            [new class {}, 'object\(<anonymous@.*DumperTest\.php.*>\)', true],
         ];
 
         $this->assertDumpResults($assertions, 1);
