@@ -135,6 +135,7 @@ object(Kuria\Debug\TestPropertiesA) {
     public [dynamic] => "hello"
 }
 EXPECTED
+                ,
             ],
             [new \DateTime('2015-01-01 00:00 UTC'), 'object(DateTime) "Thu, 01 Jan 2015 00:00:00 +0000"'],
             [new TestToString(), 'object(Kuria\Debug\TestToString) "foo bar"'],
@@ -144,12 +145,14 @@ object(stdClass) {
     public [key-binary-\001\002] => "b"
 }
 EXPECTED
+                ,
             ],
             [new TestDebugInfo(), <<<EXPECTED
 object(Kuria\Debug\TestDebugInfo) {
     [foo] => "bar"
 }
 EXPECTED
+                ,
             ],
         ];
 
