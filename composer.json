@@ -4,7 +4,8 @@
     "keywords": ["debug", "dump", "var_dump", "hex", "exception", "error"],
     "license": "MIT",
     "require": {
-        "php": ">=7.1"
+        "php": ">=7.1",
+        "ext-mbstring": "*"
     },
     "require-dev": {
         "kuria/dev-meta": "^0.3.0"
