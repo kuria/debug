@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 class OutputTest extends TestCase
 {
-    function testCleanBuffers()
+    function testShouldCleanBuffers()
     {
         $initialBufferLevel = ob_get_level();
 
@@ -16,7 +16,7 @@ class OutputTest extends TestCase
         $this->assertSame($initialBufferLevel, ob_get_level());
     }
 
-    function testCaptureBuffers()
+    function testShouldCaptureBuffers()
     {
         $initialBufferLevel = ob_get_level();
 
@@ -26,7 +26,7 @@ class OutputTest extends TestCase
         $this->assertSame($initialBufferLevel, ob_get_level());
     }
 
-    function testCleanBuffersWithCaughtException()
+    function testShouldCleanBuffersWithCaughtException()
     {
         $initialBufferLevel = ob_get_level();
 
@@ -36,7 +36,7 @@ class OutputTest extends TestCase
         $this->assertSame($initialBufferLevel, ob_get_level());
     }
 
-    function testCaptureBuffersWithCaughtException()
+    function testShouldCaptureBuffersWithCaughtException()
     {
         $initialBufferLevel = ob_get_level();
 
@@ -46,7 +46,7 @@ class OutputTest extends TestCase
         $this->assertSame($initialBufferLevel, ob_get_level());
     }
 
-    function testCleanBuffersWithRethrownException()
+    function testShouldCleanBuffersWithRethrownException()
     {
         $initialBufferLevel = ob_get_level();
         $bufferException = new \Exception();
@@ -70,7 +70,7 @@ class OutputTest extends TestCase
         $this->assertSame($initialBufferLevel, ob_get_level());
     }
 
-    function testCaptureBuffersWithRethrownException()
+    function testShouldCaptureBuffersWithRethrownException()
     {
         $initialBufferLevel = ob_get_level();
         $bufferException = new \Exception();
@@ -94,7 +94,7 @@ class OutputTest extends TestCase
         $this->assertSame($initialBufferLevel, ob_get_level());
     }
 
-    function testCleanBuffersAboveCurrentLevel()
+    function testShouldCleanBuffersAboveCurrentLevel()
     {
         $this->assertTrue(Output::cleanBuffers(ob_get_level() + 1));
         $this->assertSame('', Output::captureBuffers(ob_get_level() + 1));

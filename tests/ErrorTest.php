@@ -9,7 +9,7 @@ class ErrorTest extends TestCase
     /**
      * @dataProvider provideErrorConstants
      */
-    function testGetName(string $constant)
+    function testShouldGetName(string $constant)
     {
         $this->assertSame($constant, Error::getName(constant($constant)));
     }

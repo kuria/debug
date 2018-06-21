@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 class DumperTest extends TestCase
 {
-    function testDumpBasic()
+    function testShouldDumpBasicValues()
     {
         $assertions = [
             ['foo bar', '"foo bar"'],
@@ -29,7 +29,7 @@ class DumperTest extends TestCase
         $this->assertDumpResults($assertions, 1);
     }
 
-    function testDumpString()
+    function testShouldDumpString()
     {
         $assertions = [
             ['12345678910', '"1234567891"...'],
@@ -77,7 +77,7 @@ class DumperTest extends TestCase
      * @param int    $width
      * @param string  $expectedOutput
      */
-    function testDumpStringAsHex($string, $width, $expectedOutput)
+    function testShouldDumpStringAsHex($string, $width, $expectedOutput)
     {
         $this->assertSame($expectedOutput, Dumper::dumpStringAsHex($string, $width));
     }
@@ -111,16 +111,14 @@ EXPECTED
         ];
     }
 
-    function testDumpObject()
+    function testShouldDumpObject()
     {
         $testPropertyObject = new TestPropertiesA();
         $testPropertyObject->dynamic = 'hello';
 
-        // NULLs in object property names are not tested here
-        // beacause they are not supported before PHP 7
         $testKeyEscapesObject = new \stdClass();
         $testKeyEscapesObject->{"key-escapes-\t\n\v"} = 'a';
-        $testKeyEscapesObject->{"key-binary-\001\002"} = 'b';
+        $testKeyEscapesObject->{"key-binary-\000\001\002"} = 'b';
 
         $assertions = [
             [$testPropertyObject, <<<EXPECTED
@@ -142,7 +140,7 @@ EXPECTED
             [$testKeyEscapesObject, <<<'EXPECTED'
 object(stdClass) {
     public [key-escapes-\t\n\v] => "a"
-    public [key-binary-\001\002] => "b"
+    public [key-binary-\000\001\002] => "b"
 }
 EXPECTED
                 ,
@@ -159,7 +157,7 @@ EXPECTED
         $this->assertDumpResults($assertions);
     }
 
-    function testDumpDeepObject()
+    function testShouldDumpDeepObject()
     {
         $testObject = new \stdClass();
 
@@ -182,7 +180,7 @@ EXPECTED;
         $this->assertSame($expected, Dumper::dump($testObject, 3));
     }
 
-    function testDumpArray()
+    function testShouldDumpArray()
     {
         $testArray = [
             "hello" => 'world',
@@ -215,7 +213,7 @@ EXPECTED;
      * @param bool   $includeStatic
      * @param array  $expectedProperties
      */
-    function testGetObjectProperties($object, $includeStatic, array $expectedProperties)
+    function testShouldGetObjectProperties($object, $includeStatic, array $expectedProperties)
     {
         $propertyReflections = Dumper::getObjectProperties($object, $includeStatic);
 

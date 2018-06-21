@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 class ExceptionTest extends TestCase
 {
-    function testGetChain()
+    function testShouldGetChain()
     {
         $c = new \Exception('C');
         $b = new \Exception('B', 0, $c);
@@ -17,7 +17,7 @@ class ExceptionTest extends TestCase
         $this->assertSame([$c], Exception::getChain($c));
     }
 
-    function testJoinChains()
+    function testShouldJoinChains()
     {
         $c = new \Exception('C');
         $b = new \Exception('B', 0, $c);
@@ -38,7 +38,7 @@ class ExceptionTest extends TestCase
         $this->assertNull($c->getPrevious());
     }
 
-    function testJoinChainsWithoutPrevious()
+    function testShouldJoinChainsWithoutPrevious()
     {
         $a = new \Exception();
         $b = new \Exception();
@@ -49,7 +49,7 @@ class ExceptionTest extends TestCase
         $this->assertSame($a, $b->getPrevious());
     }
 
-    function testJoinChainsWithDifferentExceptionHierarchies()
+    function testShouldJoinChainsWithDifferentExceptionHierarchies()
     {
         $c = new \Exception('C');
         $b = new \Exception('B', 0, $c);
@@ -70,7 +70,7 @@ class ExceptionTest extends TestCase
         $this->assertNull($c->getPrevious());
     }
 
-    function testRender()
+    function testShouldRender()
     {
         $testException = new \Exception(
             'Test exception',
@@ -108,7 +108,7 @@ class ExceptionTest extends TestCase
         $this->assertSame($output, trim($output));
     }
 
-    function testGetName()
+    function testShouldGetName()
     {
         $this->assertSame('Exception', Exception::getName(new \Exception('Test exception')));
         $this->assertSame('Exception (123)', Exception::getName(new \Exception('Test exception', 123)));
