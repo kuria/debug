@@ -318,11 +318,17 @@ EXPECTED;
 class TestPropertiesA
 {
     static $staticPublic = 'staticPublicA';
+
     protected static $staticProtected = 'staticProtectedA';
+
     private static $staticPrivate = 'staticPrivateA';
+
     public $public = 'publicA';
+
     protected $protected = 'protectedA';
+
     private $private = 'privateA';
+
     private $privateNonShadowed = 'privateNonShadowedA';
 }
 
@@ -333,10 +339,15 @@ class TestPropertiesA
 class TestPropertiesB extends TestPropertiesA
 {
     static $staticPublic = 'staticPublicB';
+
     protected static $staticProtected = 'staticProtectedB';
+
     private static $staticPrivate = 'staticPrivateB';
+
     public $public = 'publicB';
+
     protected $protected = 'protectedB';
+
     private $private = 'privateB';
 }
 
