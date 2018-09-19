@@ -2,9 +2,9 @@
 
 namespace Kuria\Debug;
 
-use PHPUnit\Framework\TestCase;
+use Kuria\DevMeta\Test;
 
-class ExceptionTest extends TestCase
+class ExceptionTest extends Test
 {
     function testShouldGetChain()
     {

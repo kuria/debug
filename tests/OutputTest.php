@@ -2,9 +2,9 @@
 
 namespace Kuria\Debug;
 
-use PHPUnit\Framework\TestCase;
+use Kuria\DevMeta\Test;
 
-class OutputTest extends TestCase
+class OutputTest extends Test
 {
     function testShouldCleanBuffers()
     {

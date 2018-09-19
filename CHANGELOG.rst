@@ -1,6 +1,12 @@
 Changelog
 #########
 
+4.0.1
+*****
+
+- ``Dumper`` now calls ``__toString()`` directly and catches any exceptions
+
+
 4.0.0
 *****
 

@@ -3,8 +3,8 @@ Debug utilities
 
 Collection of useful debugging utilities.
 
-.. image:: https://travis-ci.org/kuria/debug.svg?branch=master
-   :target: https://travis-ci.org/kuria/debug
+.. image:: https://travis-ci.com/kuria/debug.svg?branch=master
+   :target: https://travis-ci.com/kuria/debug
 
 .. contents::
    :depth: 2

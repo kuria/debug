@@ -269,7 +269,11 @@ abstract class Dumper
 
             // short dump (or no properties) - use __toString() if available
             if (method_exists($value, '__toString')) {
-                $output .= ' ' . static::dumpString((string) $value, $maxStringLen, $encoding, ['"', '"'], '...');
+                try {
+                    $output .= ' ' . static::dumpString($value->__toString(), $maxStringLen, $encoding, ['"', '"'], '...');
+                } catch (\Throwable $e) {
+                    // ignore __toString() exceptions
+                }
                 break;
             }
         } while (false);

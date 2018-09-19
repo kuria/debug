@@ -2,9 +2,9 @@
 
 namespace Kuria\Debug;
 
-use PHPUnit\Framework\TestCase;
+use Kuria\DevMeta\Test;
 
-class DumperTest extends TestCase
+class DumperTest extends Test
 {
     function testShouldDumpBasicValues()
     {
@@ -137,6 +137,7 @@ EXPECTED
             ],
             [new \DateTime('2015-01-01 00:00 UTC'), 'object(DateTime) "Thu, 01 Jan 2015 00:00:00 +0000"'],
             [new TestToString(), 'object(Kuria\Debug\TestToString) "foo bar"'],
+            [new TestThrowingToString(), 'object(Kuria\Debug\TestThrowingToString)'],
             [$testKeyEscapesObject, <<<'EXPECTED'
 object(stdClass) {
     public [key-escapes-\t\n\v] => "a"
@@ -359,6 +360,17 @@ class TestToString
     function __toString()
     {
         return 'foo bar';
+    }
+}
+
+/**
+ * @internal
+ */
+class TestThrowingToString
+{
+    function __toString()
+    {
+        throw new \Exception('__toString exception');
     }
 }
 

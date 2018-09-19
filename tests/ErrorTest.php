@@ -2,9 +2,9 @@
 
 namespace Kuria\Debug;
 
-use PHPUnit\Framework\TestCase;
+use Kuria\DevMeta\Test;
 
-class ErrorTest extends TestCase
+class ErrorTest extends Test
 {
     /**
      * @dataProvider provideErrorConstants
