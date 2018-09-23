@@ -14,7 +14,7 @@ class ErrorTest extends Test
         $this->assertSame($constant, Error::getName(constant($constant)));
     }
 
-    function provideErrorConstants(): array
+    function provideErrorConstants()
     {
         return [
             ['E_ERROR'],
