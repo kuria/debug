@@ -80,7 +80,7 @@ class OutputTest extends Test
         $e = null;
 
         try {
-            Output::cleanBuffers($initialBufferLevel);
+            Output::captureBuffers($initialBufferLevel);
         } catch (\Throwable $e) {
             $this->assertSame($bufferException, $e);
         }
@@ -114,8 +114,8 @@ class OutputTest extends Test
         echo 'a';
 
         ob_start(function ($buffer, $phase) use ($exception) {
-            if ((PHP_OUTPUT_HANDLER_END & $phase) !== (0)) {
-                throw $exception ?: new \Exception();
+            if ((PHP_OUTPUT_HANDLER_END & $phase) !== 0) {
+                throw $exception ?? new \Exception();
             }
         });
 

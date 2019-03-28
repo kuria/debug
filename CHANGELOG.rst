@@ -1,6 +1,12 @@
 Changelog
 #########
 
+4.1.0
+*****
+
+- ``Output`` now uses output buffer flags instead of guessing from INI directives
+
+
 4.0.1
 *****
 

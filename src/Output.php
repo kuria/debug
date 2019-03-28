@@ -9,64 +9,52 @@ abstract class Output
 {
     /**
      * Attempt to clean output buffers
-     *
-     * Some built-in or non-removable buffers cannot be cleaned.
      */
     static function cleanBuffers(?int $targetLevel = null, bool $catchExceptions = false): bool
     {
-        if ($targetLevel === null) {
-            $targetLevel = self::determineMinimalBufferLevel();
-        }
+        $level = 0;
+        $stopLevel = $targetLevel ?? 0;
 
-        if (($bufferLevel = ob_get_level()) > $targetLevel) {
-            do {
-                $lastBufferLevel = $bufferLevel;
+        foreach (self::iterateBufferLevels(PHP_OUTPUT_HANDLER_CLEANABLE) as $level) {
+            if ($level <= $stopLevel) {
+                break;
+            }
 
-                try {
-                    ob_end_clean();
-                } catch (\Throwable $e) {
-                    if (!$catchExceptions) {
-                        throw $e;
-                    }
+            try {
+                ob_end_clean();
+            } catch (\Throwable $e) {
+                if (!$catchExceptions) {
+                    throw $e;
                 }
-
-                $bufferLevel = ob_get_level();
-            } while ($bufferLevel > $targetLevel && $bufferLevel < $lastBufferLevel);
+            }
         }
 
-        return $bufferLevel <= $targetLevel;
+        return $targetLevel === null || $level <= $targetLevel;
     }
 
     /**
      * Attempt to capture output buffers
-     *
-     * Some built-in or non-removable buffers cannot be captured.
      */
     static function captureBuffers(?int $targetLevel = null, bool $catchExceptions = false): string
     {
-        if ($targetLevel === null) {
-            $targetLevel = self::determineMinimalBufferLevel();
-        }
+        $output = '';
+        $stopLevel = $targetLevel ?? 0;
 
-        $buffer = '';
+        foreach (self::iterateBufferLevels(PHP_OUTPUT_HANDLER_CLEANABLE) as $level) {
+            if ($level <= $stopLevel) {
+                break;
+            }
 
-        if (($bufferLevel = ob_get_level()) > $targetLevel) {
-            do {
-                $lastBufferLevel = $bufferLevel;
-
-                try {
-                    $buffer = ob_get_clean() . $buffer;
-                } catch (\Throwable $e) {
-                    if (!$catchExceptions) {
-                        throw $e;
-                    }
+            try {
+                $output = ob_get_clean() . $output;
+            } catch (\Throwable $e) {
+                if (!$catchExceptions) {
+                    throw $e;
                 }
-
-                $bufferLevel = ob_get_level();
-            } while ($bufferLevel > $targetLevel && $bufferLevel < $lastBufferLevel);
+            }
         }
 
-        return $buffer;
+        return $output;
     }
 
     /**
@@ -87,12 +75,15 @@ abstract class Output
         return false;
     }
 
-    private static function determineMinimalBufferLevel(): int
+    /**
+     * @return iterable<int>
+     */
+    private static function iterateBufferLevels(int $requiredFlags): iterable
     {
-        if (!empty(ini_get('output_buffer')) || !empty(ini_get('output_handler'))) {
-            return 1;
-        } else {
-            return 0;
+        $buffers = ob_get_status(true);
+
+        for ($i = count($buffers) - 1; $i >= 0 && ($buffers[$i]['flags'] & $requiredFlags) === $requiredFlags; --$i) {
+            yield $i + 1;
         }
     }
 }
