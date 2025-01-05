@@ -1,10 +1,11 @@
 Changelog
 #########
 
-4.1.0
+4.0.2
 *****
 
 - ``Output`` now uses output buffer flags instead of guessing from INI directives
+- fix E_STRICT usage (deprecated in PHP 8.4)
 
 
 4.0.1
